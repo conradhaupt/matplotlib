@@ -228,7 +228,7 @@ validate_floatlist = _listify_validator(
     validate_float, doc='return a list of floats')
 
 
-def _validate_marker(s):
+def validate_marker(s):
     try:
         return validate_int(s)
     except ValueError as e:
@@ -238,8 +238,8 @@ def _validate_marker(s):
             raise ValueError('Supported markers are [string, int]') from e
 
 
-_validate_markerlist = _listify_validator(
-    _validate_marker, doc='return a list of markers')
+validate_markerlist = _listify_validator(
+    validate_marker, doc='return a list of markers')
 
 
 def _validate_pathlike(s):
@@ -671,7 +671,7 @@ _prop_validators = {
         'markeredgecolor': validate_colorlist,
         'markevery': validate_markeverylist,
         'alpha': validate_floatlist,
-        'marker': _validate_markerlist,
+        'marker': validate_markerlist,
         'hatch': validate_hatchlist,
         'dashes': validate_dashlist,
     }
@@ -934,7 +934,7 @@ _validators = {
     "lines.linewidth":       validate_float,  # line width in points
     "lines.linestyle":       _validate_linestyle,  # solid line
     "lines.color":           validate_color,  # first color in color cycle
-    "lines.marker":          _validate_marker,  # marker name
+    "lines.marker":          validate_marker,  # marker name
     "lines.markerfacecolor": validate_color_or_auto,  # default color
     "lines.markeredgecolor": validate_color_or_auto,  # default color
     "lines.markeredgewidth": validate_float,
@@ -983,7 +983,7 @@ _validators = {
     "boxplot.meanline":    validate_bool,
 
     "boxplot.flierprops.color":           validate_color,
-    "boxplot.flierprops.marker":          _validate_marker,
+    "boxplot.flierprops.marker":          validate_marker,
     "boxplot.flierprops.markerfacecolor": validate_color_or_auto,
     "boxplot.flierprops.markeredgecolor": validate_color,
     "boxplot.flierprops.markeredgewidth": validate_float,
@@ -1008,7 +1008,7 @@ _validators = {
     "boxplot.medianprops.linestyle": _validate_linestyle,
 
     "boxplot.meanprops.color":           validate_color,
-    "boxplot.meanprops.marker":          _validate_marker,
+    "boxplot.meanprops.marker":          validate_marker,
     "boxplot.meanprops.markerfacecolor": validate_color,
     "boxplot.meanprops.markeredgecolor": validate_color,
     "boxplot.meanprops.markersize":      validate_float,
@@ -1141,7 +1141,7 @@ _validators = {
     "axes3d.trackballborder": validate_float,
 
     # scatter props
-    "scatter.marker":     _validate_marker,
+    "scatter.marker":     validate_marker,
     "scatter.edgecolors": validate_string,
 
     "date.epoch": _validate_date,

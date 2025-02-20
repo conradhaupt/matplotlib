@@ -29,7 +29,23 @@ def test_marker_cycle():
 
 def test_valid_marker_cycles():
     fig, ax = plt.subplots()
-    ax.set_prop_cycle(cycler(marker=[1, "+", ".", 4]))
+    ax.set_prop_cycle(mpl.cycler(marker=["1", "+", ".", 4]))
+    for _ in range(4):
+        ax.plot(range(10), range(10))
+    assert [l.get_marker() for l in ax.lines] == ["1", "+", ".", 4]
+
+
+def test_invalid_marker_cycles():
+    fig, ax = plt.subplots()
+    with pytest.raises(ValueError):
+        # Tuples are not valid markers
+        ax.set_prop_cycle(mpl.cycler(marker=[(0,)]))
+    with pytest.raises(ValueError):
+        # Lists are not valid markers
+        ax.set_prop_cycle(mpl.cycler(marker=[["1", 4]]))
+    with pytest.raises(ValueError):
+        # Floats are not valid markers.
+        ax.set_prop_cycle(mpl.cycler(marker=[0.0,]))
 
 
 def test_marker_cycle_kwargs_arrays_iterators():

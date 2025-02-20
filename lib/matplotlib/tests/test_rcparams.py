@@ -18,6 +18,7 @@ from matplotlib.rcsetup import (
     validate_color,
     validate_colorlist,
     _validate_color_or_linecolor,
+    validate_marker,
     validate_cycler,
     validate_float,
     validate_fontstretch,
@@ -204,6 +205,50 @@ def test_Issue_1713(tmp_path):
     assert rc.get('timezone') == 'UTC'
 
 
+@pytest.mark.parametrize(
+    "key",
+    [
+        "lines.marker",
+        "boxplot.flierprops.marker",
+        "boxplot.meanprops.marker",
+        "scatter.marker",
+    ],
+)
+def test_valid_markers_in_rcparams(key: str):
+    for marker_string, expected_marker in zip(['"."', '"1"', "4"], [".", "1", 4]):
+        mpl.rcParams[key] = marker_string
+        assert mpl.rcParams[key] == expected_marker, (
+            f"Marker for '{key}' failed: expected '{expected_marker}' "
+            f"but got '{mpl.rcParams[key]}' instead."
+        )
+
+
+def test_valid_markers_when_plotting():
+    _, ax = plt.subplots()
+    for expected_marker in [".", "1", 4]:
+        with plt.style.context({"lines.marker": expected_marker}):
+            line = ax.plot(range(10), range(10))
+            assert line[0].get_marker() == expected_marker
+        with plt.style.context(
+            {
+                "boxplot.flierprops.marker": expected_marker,
+                "boxplot.meanprops.marker": expected_marker,
+            }
+        ):
+            artists = plt.boxplot([20, *[0] * 20], showmeans=True)
+            assert all(
+                __line.get_marker() == expected_marker for __line in artists["fliers"]
+            )
+            assert all(
+                __line.get_marker() == expected_marker for __line in artists["means"]
+            )
+        # TODO: Markers are also set for `scatter.marker`, but it is complicated
+        # to validate this. `Axes.scatter` returns an instance of
+        # `~collections.PathCollection`, and converts markers to `~paths.Path`
+        # instances. To test this, we need to compare instances of `~paths.Path`
+        # and not markers.
+
+
 def test_animation_frame_formats():
     # Animation frame_format should allow any of the following
     # if any of these are not allowed, an exception will be raised
@@ -254,6 +299,16 @@ def generate_validator_testcases(valid):
          'fail': ((_, ValueError)
                   for _ in ('aardvark', ('a', 1), (1, 2, 3), (None, ), None))
          },
+        {'validator': validate_marker,
+         'success':  (('"."', '.'),
+                      ('"1"', '1'),
+                      ('4', 4),
+                      (4, 4),
+                      ),
+         'fail':     ((0.0, ValueError),
+                      (tuple(), ValueError),
+                      ),
+         },
         {'validator': validate_cycler,
          'success': (('cycler("color", "rgb")',
                       cycler("color", 'rgb')),
@@ -268,6 +323,8 @@ def generate_validator_testcases(valid):
                      ("cycler('c', 'rgb') * cycler('linestyle', ['-', '--'])",
                       (cycler('color', 'rgb') *
                        cycler('linestyle', ['-', '--']))),
+                     ('cycler(marker=["1", 2])',
+                      cycler(marker=["1", 2])),
                      (cycler('ls', ['-', '--']),
                       cycler('linestyle', ['-', '--'])),
                      (cycler(mew=[2, 5]),
